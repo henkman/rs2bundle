@@ -80,14 +80,14 @@ func RunGame(startupseconds uint) {
 
 func main() {
 	var opts struct {
-		Server           string
+		Server         string
 		Sleepseconds   uint
 		Startupseconds uint
 		Nonsupremacy   bool
 	}
 	flag.StringVar(&opts.Server, "s", "", "server")
 	flag.UintVar(&opts.Sleepseconds, "st", 3, "sleep in seconds between tries")
-	flag.UintVar(&opts.Sleepseconds, "sg", 25, "startup time of game")
+	flag.UintVar(&opts.Startupseconds, "sg", 25, "startup time of game")
 	flag.BoolVar(&opts.Nonsupremacy, "ns", false, "no supremacy")
 	flag.Parse()
 	if opts.Server == "" {
