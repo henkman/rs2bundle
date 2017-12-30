@@ -1,0 +1,1 @@
+@zip -9 -r rs2bundle.zip *.exe r/
