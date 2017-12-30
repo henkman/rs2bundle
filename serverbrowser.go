@@ -24,7 +24,6 @@ func (n *Native) UpdateServers() {
 		n.key, 100, `\gamedir\RS2\empty\1`)
 	if err != nil {
 		servers = []steamwebapi.Server{}
-		return
 	}
 	n.Servers = servers
 }
