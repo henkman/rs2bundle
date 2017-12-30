@@ -2,9 +2,9 @@
 tools for Rising Storm 2: Vietnam to show stats, browse available servers and auto join servers
 
 ## tools
-serverbrowser.exe shows all available populated servers
-serverstats.exe shows stats of one server
-autojoiner.exe waits until a place is free on a server and then joins you in
+- serverbrowser.exe shows all available populated servers
+- serverstats.exe shows stats of one server
+- autojoiner.exe waits until a place is free on a server and then joins you in
 
 ## building
 1. get go https://golang.org/doc/install
