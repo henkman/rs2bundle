@@ -11,8 +11,8 @@ tools for Rising Storm 2: Vietnam to show stats, browse available servers and au
 - autojoiner.exe waits until a place is free on a server and then joins you in
 
 ## building
-1. get go https://golang.org/doc/install
-2. build using the build.bat
+1. [install go](https://golang.org/doc/install)
+2. build using build.bat
 
 ## remove startup movies for faster start
 set launch options in steam to `-nostartupmovies`
@@ -20,5 +20,4 @@ set launch options in steam to `-nostartupmovies`
 # server browser configuration
 - create file serverbrowser.yaml
 - put key: $yourkey into it
-- $yourkey is the key from steam
-- [get key here](https://steamcommunity.com/dev/apikey)
+- $yourkey is [the key from steam](https://steamcommunity.com/dev/apikey)
