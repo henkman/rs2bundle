@@ -20,9 +20,12 @@ type Native struct {
 	Servers []steamwebapi.Server `json:"servers"`
 }
 
-func (n *Native) UpdateServers() {
-	servers, err := steamwebapi.GetServerList(
-		n.key, 100, `\gamedir\RS2\empty\1`)
+func (n *Native) UpdateServers(showempty bool) {
+	filter := `\gamedir\RS2`
+	if !showempty {
+		filter += `\empty\1`
+	}
+	servers, err := steamwebapi.GetServerList(n.key, 5000, filter)
 	if err != nil {
 		servers = []steamwebapi.Server{}
 	}

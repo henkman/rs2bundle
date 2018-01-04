@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>test</title>
+	<title>browser</title>
 	<style>
 		html,
 		body {
@@ -17,14 +17,6 @@
 			cursor: default;
 		}
 
-		table.sortable th {
-			cursor: pointer;
-		}
-
-		table.sortable th:hover {
-			color: red;
-		}
-
 		table.sortable td {
 			padding: 2px;
 		}
@@ -33,20 +25,20 @@
 			border-bottom: 1px solid black;
 		}
 
-		input[type=button] {
+		input[type=button],
+		[data-address]:hover,
+		table.sortable th {
 			cursor: pointer;
 		}
 
-		input[type=button]:hover {
+		input[type=button]:hover,
+		[data-address]:hover,
+		table.sortable th:hover {
 			color: red;
 		}
 
-		[data-address]:hover {
-			cursor: pointer;
-		}
-
-		[data-address]:hover {
-			color: red;
+		.pad {
+			padding-left: 20px;
 		}
 	</style>
 	<script src="sorttable.min.js"></script>
@@ -54,6 +46,8 @@
 	<script>
 		window.addEventListener("load", function () {
 			const buref = document.getElementById("refresh");
+			const sptotal = document.getElementById("total");
+			const cbshowempty = document.getElementById("showempty");
 			function buttonsDisabled(state) {
 				buref.disabled = state;
 			}
@@ -66,13 +60,14 @@
 			});
 			buref.addEventListener("click", function () {
 				buttonsDisabled(true);
-				native.updateServers();
+				native.updateServers(cbshowempty.checked);
 				const servers = native.data.servers;
 				if (!servers) {
 					alert("no servers found");
 					buttonsDisabled(false);
 					return;
 				}
+				var sum = 0;
 				const table = document.querySelector("#servers");
 				const tbody = table.querySelector("tbody");
 				tbody.innerHTML = "";
@@ -106,7 +101,10 @@
 					tr.appendChild(td);
 
 					tbody.appendChild(tr);
+
+					sum += servers[i].players;
 				}
+				sptotal.textContent = sum;
 				const headers = table.querySelectorAll("th");
 				for (var i = 0; i < headers.length; i++) {
 					headers[i].className = headers[i].className
@@ -126,6 +124,11 @@
 
 <body>
 	<input type="button" id="refresh" value="refresh">
+	<span class="pad">show empty:
+		<input type="checkbox" id="showempty">
+	</span>
+	<span class="pad">
+		<span id="total">#</span> players</span>
 	<br/>
 	<table id="servers" class="sortable">
 		<thead>
