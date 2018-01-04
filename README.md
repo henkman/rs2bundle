@@ -17,5 +17,8 @@ tools for Rising Storm 2: Vietnam to show stats, browse available servers and au
 ## remove startup movies for faster start
 set launch options in steam to `-nostartupmovies`
 
-## get an api key for serverbrowser here
-https://steamcommunity.com/dev/apikey
+# server browser configuration
+- create file serverbrowser.yaml
+- put key: $yourkey into it
+- $yourkey is the key from steam
+- [get key here](https://steamcommunity.com/dev/apikey)
