@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"syscall"
 
 	"github.com/henkman/steamwebapi"
 	"github.com/zserge/webview"
@@ -30,7 +31,9 @@ func (n *Native) UpdateServers() {
 
 func (n *Native) RunShowStats(server string) {
 	prog := filepath.Join(n.dir, "serverstats.exe")
-	exec.Command("cmd", "/C", "start", prog, "-s", server).Start()
+	cmd := exec.Command("cmd", "/C", "start", prog, "-s", server)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.Start()
 }
 
 func errorPopup(msg string) {

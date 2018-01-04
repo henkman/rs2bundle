@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os/exec"
 	"strconv"
 	"strings"
 	"syscall"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/AllenDang/w32"
 	"github.com/henkman/steamquery"
-	"github.com/skratchdot/open-golang/open"
 )
 
 func TypeKeycode(keycode uint16, shift bool) {
@@ -74,7 +74,10 @@ func ConnectServer(server string, gamewindow w32.HWND) {
 }
 
 func RunGame(startupseconds uint) {
-	open.Run("steam://run/418460/")
+	cmd := exec.Command("cmd", "/C", "start",
+		"steam://run/418460/")
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.Start()
 	time.Sleep(time.Second * time.Duration(startupseconds))
 }
 

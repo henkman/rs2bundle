@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"syscall"
 
 	"github.com/henkman/steamquery"
 	"github.com/zserge/webview"
@@ -30,13 +31,17 @@ type Native struct {
 
 func (n *Native) RunJoin() {
 	prog := filepath.Join(n.dir, "autojoiner.exe")
-	exec.Command("cmd", "/C", "start", prog, "-s",
-		n.address.String()).Start()
+	cmd := exec.Command("cmd", "/C", "start", prog, "-s",
+		n.address.String())
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.Start()
 }
 
 func (n *Native) RunSteamJoin() {
-	exec.Command("cmd", "/C", "start",
-		"steam://connect/"+n.address.String()).Start()
+	cmd := exec.Command("cmd", "/C", "start",
+		"steam://connect/"+n.address.String())
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd.Start()
 }
 
 func (n *Native) UpdatePlayers() {
