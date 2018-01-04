@@ -1,99 +1,132 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>test</title>
 	<style>
-	html, body { margin:0; padding:0; }
-	table.sortable thead {
-	    background-color:#eee;
-	    color:#666666;
-	    font-weight: bold;
-	    cursor: default;
-	}
-	table.sortable td {
-		padding: 2px;
-	}
-	table tr:nth-of-type(5n) td {
-		border-bottom: 1px solid black;
-	}
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+		}
+
+		table.sortable thead {
+			background-color: #eee;
+			color: #666666;
+			font-weight: bold;
+			cursor: default;
+		}
+
+		table.sortable th {
+			cursor: pointer;
+		}
+
+		table.sortable th:hover {
+			color: red;
+		}
+
+		table.sortable td {
+			padding: 2px;
+		}
+
+		table tr:nth-of-type(5n) td {
+			border-bottom: 1px solid black;
+		}
+
+		input[type=button] {
+			cursor: pointer;
+		}
+
+		input[type=button]:hover {
+			color: red;
+		}
+
+		[data-address]:hover {
+			cursor: pointer;
+		}
+
+		[data-address]:hover {
+			color: red;
+		}
 	</style>
 	<script src="sorttable.min.js"></script>
 	<script src="juration.min.js"></script>
 	<script>
-	window.addEventListener("load", function() {
-		const buref = document.getElementById("refresh");
-		function buttonsDisabled(state) {
-			buref.disabled = state;
-		}
-		document.addEventListener("keydown", function(e) {
-			const F5 = 116;
-		    if (e.keyCode == F5) {
-				e.preventDefault();
-				buref.click();
+		window.addEventListener("load", function () {
+			const buref = document.getElementById("refresh");
+			function buttonsDisabled(state) {
+				buref.disabled = state;
 			}
-		});
-		buref.addEventListener("click", function() {
-			buttonsDisabled(true);
-			native.updateServers();
-			const servers = native.data.servers;
-			if (!servers) {
-				alert("no servers found");
+			document.addEventListener("keydown", function (e) {
+				const F5 = 116;
+				if (e.keyCode == F5) {
+					e.preventDefault();
+					buref.click();
+				}
+			});
+			buref.addEventListener("click", function () {
+				buttonsDisabled(true);
+				native.updateServers();
+				const servers = native.data.servers;
+				if (!servers) {
+					alert("no servers found");
+					buttonsDisabled(false);
+					return;
+				}
+				const table = document.querySelector("#servers");
+				const tbody = table.querySelector("tbody");
+				tbody.innerHTML = "";
+				for (var i = 0; i < servers.length; i++) {
+					const tr = document.createElement("tr");
+					var td = document.createElement("td");
+
+					td.textContent = servers[i].name;
+					td.setAttribute("data-address", servers[i].addr);
+					td.addEventListener("click", function (e) {
+						native.runShowStats(e.target
+							.getAttribute("data-address"));
+					});
+					tr.appendChild(td);
+
+					td = document.createElement("td");
+					td.textContent = servers[i].map;
+					tr.appendChild(td);
+
+					td = document.createElement("td");
+					td.textContent = servers[i].players + "/"
+						+ servers[i].max_players;
+					tr.appendChild(td);
+
+					td = document.createElement("td");
+					td.textContent = servers[i].steamid;
+					tr.appendChild(td);
+
+					td = document.createElement("td");
+					td.textContent = servers[i].addr;
+					tr.appendChild(td);
+
+					tbody.appendChild(tr);
+				}
+				const headers = table.querySelectorAll("th");
+				for (var i = 0; i < headers.length; i++) {
+					headers[i].className = headers[i].className
+						.replace('sorttable_sorted_reverse', '')
+						.replace('sorttable_sorted', '');
+				}
+				sorttable.innerSortFunction.apply(headers[2], []);
+				sorttable.reverse(tbody);
 				buttonsDisabled(false);
-				return;
-			}
-			const table = document.querySelector("#servers");
-			const tbody = table.querySelector("tbody");
-			tbody.innerHTML = "";
-			for(var i=0; i<servers.length; i++) {
-				const tr = document.createElement("tr");
-				tr.setAttribute("data-address", servers[i].addr);
-				var td = document.createElement("td");
-				
-				td.textContent = servers[i].name;
-				td.style.cursor = "pointer";
-				td.addEventListener("click", function(e) {
-					native.runShowStats(e.target.parentElement
-						.getAttribute("data-address"));
-				});
-				tr.appendChild(td);
-				
-				td = document.createElement("td");
-				td.textContent = servers[i].map;
-				tr.appendChild(td);
-				
-				td = document.createElement("td");
-				td.textContent = servers[i].players + "/"
-					+ servers[i].max_players;
-				tr.appendChild(td);
-				
-				td = document.createElement("td");
-				td.textContent = servers[i].steamid;
-				tr.appendChild(td);
-				
-				td = document.createElement("td");
-				td.textContent = servers[i].addr;
-				tr.appendChild(td);
-				
-				tbody.appendChild(tr);
-			}
-			const headers = table.querySelectorAll("th");
-			for(var i=0; i<headers.length; i++) {
-				headers[i].className = headers[i].className
-					.replace('sorttable_sorted_reverse','')
-					.replace('sorttable_sorted','');
-			}
-			sorttable.innerSortFunction.apply(headers[2], []);
-			sorttable.reverse(tbody);
-			buttonsDisabled(false);
+			});
+			setTimeout(function () {
+				buref.click();
+			}, 20);
 		});
-		setTimeout(function() {
-			buref.click();
-		}, 20);
-	});
 	</script>
 </head>
+
 <body>
-	<input type="button" id="refresh" value="refresh"><br/>
+	<input type="button" id="refresh" value="refresh">
+	<br/>
 	<table id="servers" class="sortable">
 		<thead>
 			<tr>
@@ -104,7 +137,8 @@
 				<th class="sorttable_alpha">Address</th>
 			</tr>
 		</thead>
-    	<tbody></tbody>
+		<tbody></tbody>
 	</table>
 </body>
+
 </html>

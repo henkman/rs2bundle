@@ -30,7 +30,13 @@ type Native struct {
 
 func (n *Native) RunJoin() {
 	prog := filepath.Join(n.dir, "autojoiner.exe")
-	exec.Command("cmd", "/C", "start", prog, "-s", n.address.String()).Start()
+	exec.Command("cmd", "/C", "start", prog, "-s",
+		n.address.String()).Start()
+}
+
+func (n *Native) RunSteamJoin() {
+	exec.Command("cmd", "/C", "start",
+		"steam://connect/"+n.address.String()).Start()
 }
 
 func (n *Native) UpdatePlayers() {
