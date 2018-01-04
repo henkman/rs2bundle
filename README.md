@@ -3,7 +3,7 @@ tools for Rising Storm 2: Vietnam to show stats, browse available servers and au
 
 [**Download here**](https://github.com/henkman/rs2bundle/releases/download/1.0/rs2bundle.zip)
 
-![screenshot]( "Screenshot")
+![screenshot](https://github.com/henkman/rs2bundle/raw/master/screenshot.jpg "Screenshot")
 
 ## tools
 - serverbrowser.exe shows all available populated servers
