@@ -74,11 +74,11 @@
 					buttonsDisabled(false);
 					return;
 				}
-				var sum = 0;
+				let sum = 0;
 				elms.tbody.innerHTML = "";
-				for (var i = 0; i < servers.length; i++) {
+				for (let i = 0; i < servers.length; i++) {
 					const tr = document.createElement("tr");
-					var td = document.createElement("td");
+					let td = document.createElement("td");
 
 					td.textContent = servers[i].name;
 					td.setAttribute("data-address", servers[i].addr);
@@ -109,7 +109,7 @@
 					sum += servers[i].players;
 				}
 				elms.sptotal.textContent = sum;
-				for (var i = 0; i < elms.headers.length; i++) {
+				for (let i = 0; i < elms.headers.length; i++) {
 					elms.headers[i].className = elms.headers[i].className
 						.replace('sorttable_sorted_reverse', '')
 						.replace('sorttable_sorted', '');

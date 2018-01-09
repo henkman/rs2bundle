@@ -90,11 +90,11 @@
 					return;
 				}
 				elms.tbody.innerHTML = "";
-				for (var i = 0; i < players.length; i++) {
+				for (let i = 0; i < players.length; i++) {
 					const d = players[i].Duration;
 					const secs = (d / 1000000000) + (d % 1000000000) / 1000000000;
 					const tr = document.createElement("tr");
-					var td = document.createElement("td");
+					let td = document.createElement("td");
 					td.textContent = players[i].Name;
 					tr.appendChild(td);
 
@@ -112,7 +112,7 @@
 					tr.appendChild(td);
 					elms.tbody.appendChild(tr);
 				}
-				for (var i = 0; i < elms.headers.length; i++) {
+				for (let i = 0; i < elms.headers.length; i++) {
 					elms.headers[i].className = elms.headers[i].className
 						.replace('sorttable_sorted_reverse', '')
 						.replace('sorttable_sorted', '');
