@@ -12,7 +12,9 @@ tools for Rising Storm 2: Vietnam to show stats, browse available servers and au
 
 ## building
 1. [install go](https://golang.org/doc/install)
-2. build using build.bat
+2. run 'go get -u -v github.com/henkman/rs2bundle'
+3. run 'go get -ldflags="-s -w" github.com/tdewolff/minify/cmd/minify'
+3. run 'build.bat'
 
 ## remove startup movies for faster start
 set launch options in steam to `-nostartupmovies`
