@@ -20,6 +20,6 @@ tools for Rising Storm 2: Vietnam to show stats, browse available servers and au
 set launch options in steam to `-nostartupmovies`
 
 # server browser configuration
-- create file serverbrowser.yaml
-- put key: $yourkey into it
+- create file serverbrowser.json
+- put {"key": "$yourkey"} into it
 - $yourkey is [the key from steam](https://steamcommunity.com/dev/apikey)

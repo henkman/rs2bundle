@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"syscall"
 
+	"encoding/json"
+
 	"github.com/henkman/steamwebapi"
 	"github.com/zserge/webview"
-	"gopkg.in/yaml.v2"
 )
 
 type Native struct {
@@ -52,16 +52,20 @@ func errorPopup(msg string) {
 
 func main() {
 	var config struct {
-		Key string `yaml:"key"`
+		Key string `json:"key"`
 	}
-	cd, err := ioutil.ReadFile("serverbrowser.yaml")
-	if err != nil {
-		errorPopup(err.Error())
-		return
-	}
-	if err := yaml.Unmarshal(cd, &config); err != nil {
-		errorPopup(err.Error())
-		return
+	{
+		fd, err := os.Open("serverbrowser.json")
+		if err != nil {
+			errorPopup(err.Error())
+			return
+		}
+		err = json.NewDecoder(fd).Decode(&config)
+		fd.Close()
+		if err != nil {
+			errorPopup(err.Error())
+			return
+		}
 	}
 	ex, err := os.Executable()
 	if err != nil {
