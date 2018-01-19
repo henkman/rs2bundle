@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/henkman/steamquery"
 	"github.com/zserge/webview"
@@ -27,6 +28,7 @@ type Native struct {
 	dir     string
 	Info    Info                `json:"info"`
 	Players []steamquery.Player `json:"players"`
+	Ping    time.Duration       `json:"ping"`
 }
 
 func (n *Native) RunJoin() {
@@ -45,11 +47,13 @@ func (n *Native) RunSteamJoin() {
 }
 
 func (n *Native) UpdatePlayers() {
+	before := time.Now()
 	players, err := steamquery.QueryPlayers(n.address)
 	if err != nil {
 		n.Players = []steamquery.Player{}
 		return
 	}
+	n.Ping = time.Now().Sub(before)
 	n.Players = players
 }
 

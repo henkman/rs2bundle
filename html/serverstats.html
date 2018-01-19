@@ -46,7 +46,8 @@
 				name: document.getElementById("name"),
 				map: document.getElementById("map"),
 				count: document.getElementById("count"),
-				maxcount: document.getElementById("maxcount")
+				maxcount: document.getElementById("maxcount"),
+				ping: document.getElementById("ping")
 			};
 			{
 				const table = document.getElementById("players");
@@ -89,6 +90,7 @@
 					buttonsDisabled(false);
 					return;
 				}
+				elms.ping.innerHTML = Math.floor(native.data.ping/1000000)+"ms";
 				elms.tbody.innerHTML = "";
 				for (let i = 0; i < players.length; i++) {
 					const d = players[i].Duration;
@@ -138,13 +140,22 @@
 	<input type="button" id="join" value="join">
 	<input type="button" id="steamjoin" value="steam join">
 	<br/> Name:
-	<span id="name"></span>
-	<br/> Map:
-	<span id="map"></span>
-	<br/> Players:
-	<span id="count"></span>/
-	<span id="maxcount"></span>
-	<br/>
+	<b id="name"></b>
+	<div>
+		<div style="float:left; padding-right:35px">
+			Map:
+			<b id="map"></b>
+		</div>
+		<div style="float: left; padding-right:35px">
+			Players:
+			<b id="count"></b>|<b id="maxcount"></b>
+		</div>
+		<div style="float: left">
+			Ping:
+			<b id="ping"></b>
+		</div>
+	</div>
+	<br style="clear: both;"/>
 	<table id="players" class="sortable">
 		<thead>
 			<tr>
