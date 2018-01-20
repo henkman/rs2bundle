@@ -86,11 +86,11 @@
 				elms.maxcount.innerText = info.MaxPlayers;
 				native.updatePlayers();
 				const players = native.data.players;
+				elms.ping.innerHTML = Math.floor(native.data.ping/1000000)+"ms";
 				if (!players.length) {
 					buttonsDisabled(false);
 					return;
 				}
-				elms.ping.innerHTML = Math.floor(native.data.ping/1000000)+"ms";
 				elms.tbody.innerHTML = "";
 				for (let i = 0; i < players.length; i++) {
 					const d = players[i].Duration;
