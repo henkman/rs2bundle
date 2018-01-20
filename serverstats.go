@@ -47,18 +47,17 @@ func (n *Native) RunSteamJoin() {
 }
 
 func (n *Native) UpdatePlayers() {
-	before := time.Now()
-	players, err := steamquery.QueryPlayers(n.address)
+	players, ping, err := steamquery.QueryPlayers(n.address)
 	if err != nil {
 		n.Players = []steamquery.Player{}
 		return
 	}
-	n.Ping = time.Now().Sub(before)
+	n.Ping = ping
 	n.Players = players
 }
 
 func (n *Native) UpdateInfo() {
-	rules, err := steamquery.QueryRules(n.address)
+	rules, _, err := steamquery.QueryRules(n.address)
 	if err != nil {
 		n.Info = Info{}
 		return

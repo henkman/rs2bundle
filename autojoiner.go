@@ -101,7 +101,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	info, err := steamquery.QueryInfo(addr)
+	info, _, err := steamquery.QueryInfo(addr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func main() {
 		RunGame(opts.Startupseconds)
 	}
 	for {
-		rs, err := steamquery.QueryRules(addr)
+		rs, _, err := steamquery.QueryRules(addr)
 		if err != nil {
 			log.Fatal(err)
 		}
