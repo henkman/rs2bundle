@@ -38,26 +38,70 @@
 	<script src="sorttable.min.js"></script>
 	<script src="juration.min.js"></script>
 	<script>
+		const elms = {};
+		function refreshButtonAction(info) {
+			if(info.error) {
+				alert(info.error);
+				return;
+			}
+			elms.name.innerText = info.name;
+			elms.map.innerText = info.map;
+			elms.count.innerText = info.playerCount;
+			elms.maxcount.innerText = info.maxPlayerCount;
+			elms.ping.innerText = Math.floor(info.ping / 1000000) + "ms";
+			if (!info.players.length) {
+				return;
+			}
+			elms.tbody.innerHTML = "";
+			for (let i = 0; i < info.players.length; i++) {
+				const p = info.players[i];
+				const d = p.Duration;
+				const secs = (d / 1000000000) + (d % 1000000000) / 1000000000;
+				const tr = document.createElement("tr");
+				let td = document.createElement("td");
+				td.textContent = p.Name;
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = p.Score;
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = juration.stringify(secs);
+				td.setAttribute("sorttable_customkey", '' + secs);
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = (p.Score / secs).toFixed(6);
+				tr.appendChild(td);
+				elms.tbody.appendChild(tr);
+			}
+			for (let i = 0; i < elms.headers.length; i++) {
+				elms.headers[i].className = elms.headers[i].className
+					.replace('sorttable_sorted_reverse', '')
+					.replace('sorttable_sorted', '');
+			}
+			sorttable.innerSortFunction.apply(elms.headers[3], []);
+			sorttable.reverse(elms.tbody);
+		}
+		function buttonsDisabled(state) {
+			elms.bujoin.disabled = state;
+			elms.buref.disabled = state;
+			elms.busjoin.disabled = state;
+		}
 		window.addEventListener("load", function () {
-			const elms = {
-				bujoin: document.getElementById("join"),
-				buref: document.getElementById("refresh"),
-				busjoin: document.getElementById("steamjoin"),
-				name: document.getElementById("name"),
-				map: document.getElementById("map"),
-				count: document.getElementById("count"),
-				maxcount: document.getElementById("maxcount"),
-				ping: document.getElementById("ping")
-			};
+			elms.bujoin = document.getElementById("join");
+			elms.buref = document.getElementById("refresh");
+			elms.busjoin = document.getElementById("steamjoin");
+			elms.name = document.getElementById("name");
+			elms.map = document.getElementById("map");
+			elms.count = document.getElementById("count");
+			elms.maxcount = document.getElementById("maxcount");
+			elms.ping = document.getElementById("ping");
 			{
 				const table = document.getElementById("players");
 				elms.tbody = table.querySelector("tbody");
 				elms.headers = table.querySelectorAll("th");
-			}
-			function buttonsDisabled(state) {
-				elms.bujoin.disabled = state;
-				elms.buref.disabled = state;
-				elms.busjoin.disabled = state;
 			}
 			document.addEventListener("keydown", function (e) {
 				const F5 = 116;
@@ -73,55 +117,9 @@
 			});
 			elms.buref.addEventListener("click", function () {
 				buttonsDisabled(true);
-				native.updateInfo();
-				const info = native.data.info;
-				if (!info.Name) {
-					alert("could not contact server");
-					buttonsDisabled(false);
-					return;
-				}
-				elms.name.innerText = info.Name;
-				elms.map.innerText = info.Map;
-				elms.count.innerText = info.Players;
-				elms.maxcount.innerText = info.MaxPlayers;
-				native.updatePlayers();
-				const players = native.data.players;
-				elms.ping.innerHTML = Math.floor(native.data.ping/1000000)+"ms";
-				if (!players.length) {
-					buttonsDisabled(false);
-					return;
-				}
-				elms.tbody.innerHTML = "";
-				for (let i = 0; i < players.length; i++) {
-					const d = players[i].Duration;
-					const secs = (d / 1000000000) + (d % 1000000000) / 1000000000;
-					const tr = document.createElement("tr");
-					let td = document.createElement("td");
-					td.textContent = players[i].Name;
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = players[i].Score;
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = juration.stringify(secs);
-					td.setAttribute("sorttable_customkey", '' + secs);
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = (players[i].Score / secs).toFixed(6);
-					tr.appendChild(td);
-					elms.tbody.appendChild(tr);
-				}
-				for (let i = 0; i < elms.headers.length; i++) {
-					elms.headers[i].className = elms.headers[i].className
-						.replace('sorttable_sorted_reverse', '')
-						.replace('sorttable_sorted', '');
-				}
-				sorttable.innerSortFunction.apply(elms.headers[3], []);
-				sorttable.reverse(elms.tbody);
-				buttonsDisabled(false);
+				native.getServerInfo(
+					"refreshButtonAction(JSON.parse(x));" +
+					"buttonsDisabled(false);");
 			});
 			elms.busjoin.addEventListener("click", function () {
 				buttonsDisabled(true);
@@ -155,7 +153,7 @@
 			<b id="ping"></b>
 		</div>
 	</div>
-	<br style="clear: both;"/>
+	<br style="clear: both;" />
 	<table id="players" class="sortable">
 		<thead>
 			<tr>

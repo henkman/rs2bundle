@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"os"
@@ -15,21 +16,57 @@ import (
 )
 
 type Native struct {
-	key     string
-	dir     string
-	Servers []steamwebapi.Server `json:"servers"`
+	w   webview.WebView
+	key string
+	dir string
 }
 
-func (n *Native) UpdateServers(showempty bool) {
-	filter := `\gamedir\RS2`
-	if !showempty {
-		filter += `\empty\1`
-	}
-	servers, err := steamwebapi.GetServerList(n.key, 5000, filter)
-	if err != nil {
-		servers = []steamwebapi.Server{}
-	}
-	n.Servers = servers
+func (n *Native) GetServerList(cb string, showempty bool) {
+	go func() {
+		filter := `\gamedir\RS2`
+		if !showempty {
+			filter += `\empty\1`
+		}
+		servers, err := steamwebapi.GetServerList(n.key, 5000, filter)
+		if err != nil {
+			n.w.Dispatch(func() {
+				n.w.Eval(`alert("` + err.Error() + `");`)
+			})
+			return
+		}
+		type JSONServer struct {
+			Name       string `json:"name"`
+			Addr       string `json:"addr"`
+			Map        string `json:"map"`
+			Players    int    `json:"players"`
+			MaxPlayers int    `json:"max_players"`
+			Steamid    string `json:"steamid"`
+		}
+		jsservers := make([]JSONServer, len(servers))
+		for i, server := range servers {
+			jsservers[i] = JSONServer{
+				Name:       server.Name,
+				Addr:       server.Addr,
+				Map:        server.Map,
+				Players:    server.Players,
+				MaxPlayers: server.MaxPlayers,
+				Steamid:    server.Steamid,
+			}
+		}
+		raw, err := json.Marshal(jsservers)
+		if err != nil {
+			n.w.Dispatch(func() {
+				n.w.Eval(`alert("` + err.Error() + `");`)
+			})
+			return
+		}
+		raw = bytes.Replace(raw, []byte(`\`), []byte(`\\`), -1)
+		raw = bytes.Replace(raw, []byte(`"`), []byte(`\"`), -1)
+		code := fmt.Sprintf(`(function(x) {%s})("%s");`, cb, string(raw))
+		n.w.Dispatch(func() {
+			n.w.Eval(code)
+		})
+	}()
 }
 
 func (n *Native) RunShowStats(server string) {
@@ -83,7 +120,9 @@ func main() {
 	})
 	defer w.Exit()
 	w.Dispatch(func() {
-		w.Bind("native", &Native{key: config.Key, dir: dir})
+		w.Bind("native", &Native{w: w,
+			key: config.Key,
+			dir: dir})
 	})
 	w.Run()
 }

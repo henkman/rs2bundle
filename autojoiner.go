@@ -111,7 +111,9 @@ func main() {
 	for {
 		rs, _, err := steamquery.QueryRules(addr)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			time.Sleep(time.Second * time.Duration(opts.Sleepseconds))
+			continue
 		}
 		var vals struct {
 			Map       string

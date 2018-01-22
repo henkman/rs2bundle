@@ -44,19 +44,66 @@
 	<script src="sorttable.min.js"></script>
 	<script src="juration.min.js"></script>
 	<script>
+		const elms = {};
+		function refreshButtonAction(servers) {
+			if (!servers) {
+				alert("no servers found");
+				return;
+			}
+			let sum = 0;
+			elms.tbody.innerHTML = "";
+			for (let i = 0; i < servers.length; i++) {
+				const tr = document.createElement("tr");
+				let td = document.createElement("td");
+
+				td.textContent = servers[i].name;
+				td.setAttribute("data-address", servers[i].addr);
+				td.addEventListener("click", function (e) {
+					native.runShowStats(e.target
+						.getAttribute("data-address"));
+				});
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = servers[i].map;
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = servers[i].players + "/"
+					+ servers[i].max_players;
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = servers[i].steamid;
+				tr.appendChild(td);
+
+				td = document.createElement("td");
+				td.textContent = servers[i].addr;
+				tr.appendChild(td);
+
+				elms.tbody.appendChild(tr);
+				sum += servers[i].players;
+			}
+			elms.sptotal.textContent = sum;
+			for (let i = 0; i < elms.headers.length; i++) {
+				elms.headers[i].className = elms.headers[i].className
+					.replace('sorttable_sorted_reverse', '')
+					.replace('sorttable_sorted', '');
+			}
+			sorttable.innerSortFunction.apply(elms.headers[2], []);
+			sorttable.reverse(elms.tbody);
+		}
+		function buttonsDisabled(state) {
+			elms.buref.disabled = state;
+		}
 		window.addEventListener("load", function () {
-			const elms = {
-				buref: document.getElementById("refresh"),
-				sptotal: document.getElementById("total"),
-				cbshowempty: document.getElementById("showempty")
-			};
+			elms.buref = document.getElementById("refresh");
+			elms.sptotal = document.getElementById("total");
+			elms.cbshowempty = document.getElementById("showempty");
 			{
 				const table = document.getElementById("servers");
 				elms.tbody = table.querySelector("tbody");
 				elms.headers = table.querySelectorAll("th");
-			}
-			function buttonsDisabled(state) {
-				elms.buref.disabled = state;
 			}
 			document.addEventListener("keydown", function (e) {
 				const F5 = 116;
@@ -67,56 +114,10 @@
 			});
 			elms.buref.addEventListener("click", function () {
 				buttonsDisabled(true);
-				native.updateServers(elms.cbshowempty.checked);
-				const servers = native.data.servers;
-				if (!servers) {
-					alert("no servers found");
-					buttonsDisabled(false);
-					return;
-				}
-				let sum = 0;
-				elms.tbody.innerHTML = "";
-				for (let i = 0; i < servers.length; i++) {
-					const tr = document.createElement("tr");
-					let td = document.createElement("td");
-
-					td.textContent = servers[i].name;
-					td.setAttribute("data-address", servers[i].addr);
-					td.addEventListener("click", function (e) {
-						native.runShowStats(e.target
-							.getAttribute("data-address"));
-					});
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = servers[i].map;
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = servers[i].players + "/"
-						+ servers[i].max_players;
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = servers[i].steamid;
-					tr.appendChild(td);
-
-					td = document.createElement("td");
-					td.textContent = servers[i].addr;
-					tr.appendChild(td);
-
-					elms.tbody.appendChild(tr);
-					sum += servers[i].players;
-				}
-				elms.sptotal.textContent = sum;
-				for (let i = 0; i < elms.headers.length; i++) {
-					elms.headers[i].className = elms.headers[i].className
-						.replace('sorttable_sorted_reverse', '')
-						.replace('sorttable_sorted', '');
-				}
-				sorttable.innerSortFunction.apply(elms.headers[2], []);
-				sorttable.reverse(elms.tbody);
-				buttonsDisabled(false);
+				native.getServerList(
+					"refreshButtonAction(JSON.parse(x));"+
+					"buttonsDisabled(false);",
+					elms.cbshowempty.checked);		
 			});
 			setTimeout(function () {
 				elms.buref.click();

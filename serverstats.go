@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
@@ -9,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -16,19 +19,10 @@ import (
 	"github.com/zserge/webview"
 )
 
-type Info struct {
-	Name       string
-	Map        string
-	Players    int
-	MaxPlayers int
-}
-
 type Native struct {
+	w       webview.WebView
 	address *net.UDPAddr
 	dir     string
-	Info    Info                `json:"info"`
-	Players []steamquery.Player `json:"players"`
-	Ping    time.Duration       `json:"ping"`
 }
 
 func (n *Native) RunJoin() {
@@ -46,53 +40,83 @@ func (n *Native) RunSteamJoin() {
 	cmd.Start()
 }
 
-func (n *Native) UpdatePlayers() {
-	players, ping, err := steamquery.QueryPlayers(n.address)
-	if err != nil {
-		n.Players = []steamquery.Player{}
-		return
-	}
-	n.Ping = ping
-	n.Players = players
-}
-
-func (n *Native) UpdateInfo() {
-	rules, _, err := steamquery.QueryRules(n.address)
-	if err != nil {
-		n.Info = Info{}
-		return
-	}
-	var owningPlayerName string
-	var p2 string
-	var numOpenPublicConnections int
-	var numPublicConnections int
-	for _, r := range rules {
-		if r.Name == "OwningPlayerName" {
-			owningPlayerName = r.Value
-		} else if r.Name == "NumOpenPublicConnections" {
-			tmp, err := strconv.Atoi(r.Value)
-			if err != nil {
-				n.Info = Info{}
-				return
-			}
-			numOpenPublicConnections = tmp
-		} else if r.Name == "NumPublicConnections" {
-			tmp, err := strconv.Atoi(r.Value)
-			if err != nil {
-				n.Info = Info{}
-				return
-			}
-			numPublicConnections = tmp
-		} else if r.Name == "p2" {
-			p2 = r.Value
+func (n *Native) GetServerInfo(cb string) {
+	go func() {
+		var info struct {
+			Name           string              `json:"name"`
+			Map            string              `json:"map"`
+			PlayerCount    int                 `json:"playerCount"`
+			MaxPlayerCount int                 `json:"maxPlayerCount"`
+			Ping           time.Duration       `json:"ping"`
+			Players        []steamquery.Player `json:"players"`
+			Error          string              `json:"error,omitempty"`
 		}
-	}
-	n.Info = Info{
-		Name:       owningPlayerName,
-		Map:        p2,
-		Players:    numPublicConnections - numOpenPublicConnections,
-		MaxPlayers: numPublicConnections,
-	}
+		var wg sync.WaitGroup
+		wg.Add(2)
+		go func() {
+			players, ping, err := steamquery.QueryPlayers(n.address)
+			if err != nil {
+				info.Error = err.Error()
+				wg.Done()
+				return
+			}
+			info.Ping = ping
+			info.Players = players
+			wg.Done()
+		}()
+		go func() {
+			rules, _, err := steamquery.QueryRules(n.address)
+			if err != nil {
+				info.Error = err.Error()
+				wg.Done()
+				return
+			}
+			var owningPlayerName string
+			var p2 string
+			var numOpenPublicConnections int
+			var numPublicConnections int
+			for _, r := range rules {
+				if r.Name == "OwningPlayerName" {
+					owningPlayerName = r.Value
+				} else if r.Name == "NumOpenPublicConnections" {
+					tmp, err := strconv.Atoi(r.Value)
+					if err != nil {
+						info.Error = err.Error()
+						wg.Done()
+						return
+					}
+					numOpenPublicConnections = tmp
+				} else if r.Name == "NumPublicConnections" {
+					tmp, err := strconv.Atoi(r.Value)
+					if err != nil {
+						info.Error = err.Error()
+						wg.Done()
+						return
+					}
+					numPublicConnections = tmp
+				} else if r.Name == "p2" {
+					p2 = r.Value
+				}
+			}
+			info.Name = owningPlayerName
+			info.Map = p2
+			info.PlayerCount = numPublicConnections - numOpenPublicConnections
+			info.MaxPlayerCount = numPublicConnections
+			wg.Done()
+		}()
+		wg.Wait()
+		raw, err := json.Marshal(info)
+		if err != nil {
+			info.Error = err.Error()
+			return
+		}
+		raw = bytes.Replace(raw, []byte(`\`), []byte(`\\`), -1)
+		raw = bytes.Replace(raw, []byte(`"`), []byte(`\"`), -1)
+		code := fmt.Sprintf(`(function(x) {%s})("%s");`, cb, string(raw))
+		n.w.Dispatch(func() {
+			n.w.Eval(code)
+		})
+	}()
 }
 
 func errorPopup(msg string) {
@@ -137,7 +161,7 @@ func main() {
 	})
 	defer w.Exit()
 	w.Dispatch(func() {
-		w.Bind("native", &Native{address: addr, dir: dir})
+		w.Bind("native", &Native{w: w, address: addr, dir: dir})
 	})
 	w.Run()
 }
