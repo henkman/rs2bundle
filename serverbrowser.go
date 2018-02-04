@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"encoding/json"
@@ -21,6 +22,18 @@ type Native struct {
 	dir string
 }
 
+func jsonCleanString(raw string) string {
+	return strings.Replace(
+		strings.Replace(raw, `\`, `\\`, -1),
+		`"`, `\"`, -1)
+}
+
+func jsonClean(raw []byte) []byte {
+	return bytes.Replace(
+		bytes.Replace(raw, []byte(`\`), []byte(`\\`), -1),
+		[]byte(`"`), []byte(`\"`), -1)
+}
+
 func (n *Native) GetServerList(cb string, showempty bool) {
 	go func() {
 		filter := `\gamedir\RS2`
@@ -30,7 +43,8 @@ func (n *Native) GetServerList(cb string, showempty bool) {
 		servers, err := steamwebapi.GetServerList(n.key, 5000, filter)
 		if err != nil {
 			n.w.Dispatch(func() {
-				n.w.Eval(`alert("` + err.Error() + `");`)
+				n.w.Eval(fmt.Sprintf(`(function(x) {%s})("%s");`, cb,
+					jsonCleanString(`{"error":"`+err.Error()+`"}`)))
 			})
 			return
 		}
@@ -56,15 +70,14 @@ func (n *Native) GetServerList(cb string, showempty bool) {
 		raw, err := json.Marshal(jsservers)
 		if err != nil {
 			n.w.Dispatch(func() {
-				n.w.Eval(`alert("` + err.Error() + `");`)
+				n.w.Eval(fmt.Sprintf(`(function(x) {%s})("%s");`, cb,
+					jsonCleanString(`{"error":"`+err.Error()+`"}`)))
 			})
 			return
 		}
-		raw = bytes.Replace(raw, []byte(`\`), []byte(`\\`), -1)
-		raw = bytes.Replace(raw, []byte(`"`), []byte(`\"`), -1)
-		code := fmt.Sprintf(`(function(x) {%s})("%s");`, cb, string(raw))
 		n.w.Dispatch(func() {
-			n.w.Eval(code)
+			n.w.Eval(fmt.Sprintf(`(function(x) {%s})("%s");`, cb,
+				string(jsonClean(raw))))
 		})
 	}()
 }

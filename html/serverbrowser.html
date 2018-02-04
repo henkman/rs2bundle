@@ -46,8 +46,8 @@
 	<script>
 		const elms = {};
 		function refreshButtonAction(servers) {
-			if (!servers) {
-				alert("no servers found");
+			if (servers.error) {
+				alert(servers.error);
 				return;
 			}
 			let sum = 0;
