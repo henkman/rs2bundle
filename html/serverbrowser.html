@@ -96,10 +96,32 @@
 		function buttonsDisabled(state) {
 			elms.buref.disabled = state;
 		}
+		function filterTable(filter) {
+			const trs = elms.tbody.querySelectorAll("tr");
+			if (filter.length == 0) {
+				for (let i = 0; i < trs.length; i++) {
+					trs[i].style.display = 'table-row';
+				}
+				return;
+			}
+			trloop:
+			for (let i = 0; i < trs.length; i++) {
+				const tds = trs[i].querySelectorAll("td");
+				for (let e = 0; e < tds.length; e++) {
+					const text = tds[e].innerText.toLowerCase();
+					if (text.indexOf(filter) >= 0) {
+						trs[i].style.display = 'table-row';
+						continue trloop;
+					}
+				}
+				trs[i].style.display = 'none';
+			}
+		}
 		window.addEventListener("load", function () {
 			elms.buref = document.getElementById("refresh");
 			elms.sptotal = document.getElementById("total");
 			elms.cbshowempty = document.getElementById("showempty");
+			elms.filter = document.getElementById("filter");
 			{
 				const table = document.getElementById("servers");
 				elms.tbody = table.querySelector("tbody");
@@ -115,9 +137,13 @@
 			elms.buref.addEventListener("click", function () {
 				buttonsDisabled(true);
 				native.getServerList(
-					"refreshButtonAction(JSON.parse(x));"+
-					"buttonsDisabled(false);",
-					elms.cbshowempty.checked);		
+					"refreshButtonAction(JSON.parse(x));" +
+					"buttonsDisabled(false);" +
+					"filterTable(elms.filter.value.toLowerCase());",
+					elms.cbshowempty.checked);
+			});
+			elms.filter.addEventListener("keyup", function (e) {
+				filterTable(e.target.value.toLowerCase());
 			});
 			setTimeout(function () {
 				elms.buref.click();
@@ -133,6 +159,7 @@
 	</span>
 	<span class="pad">
 		<span id="total">#</span> players</span>
+	<input type="text" class="pad" id="filter" placeholder="filter">
 	<br/>
 	<table id="servers" class="sortable">
 		<thead>

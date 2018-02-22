@@ -40,7 +40,7 @@
 	<script>
 		const elms = {};
 		function refreshButtonAction(info) {
-			if(info.error) {
+			if (info.error) {
 				alert(info.error);
 				return;
 			}
@@ -89,6 +89,27 @@
 			elms.buref.disabled = state;
 			elms.busjoin.disabled = state;
 		}
+		function filterTable(filter) {
+			const trs = elms.tbody.querySelectorAll("tr");
+			if (filter.length == 0) {
+				for (let i = 0; i < trs.length; i++) {
+					trs[i].style.display = 'table-row';
+				}
+				return;
+			}
+			trloop:
+			for (let i = 0; i < trs.length; i++) {
+				const tds = trs[i].querySelectorAll("td");
+				for (let e = 0; e < tds.length; e++) {
+					const text = tds[e].innerText.toLowerCase();
+					if (text.indexOf(filter) >= 0) {
+						trs[i].style.display = 'table-row';
+						continue trloop;
+					}
+				}
+				trs[i].style.display = 'none';
+			}
+		}
 		window.addEventListener("load", function () {
 			elms.bujoin = document.getElementById("join");
 			elms.buref = document.getElementById("refresh");
@@ -98,6 +119,7 @@
 			elms.count = document.getElementById("count");
 			elms.maxcount = document.getElementById("maxcount");
 			elms.ping = document.getElementById("ping");
+			elms.filter = document.getElementById("filter");
 			{
 				const table = document.getElementById("players");
 				elms.tbody = table.querySelector("tbody");
@@ -119,12 +141,16 @@
 				buttonsDisabled(true);
 				native.getServerInfo(
 					"refreshButtonAction(JSON.parse(x));" +
-					"buttonsDisabled(false);");
+					"buttonsDisabled(false);" +
+					"filterTable(elms.filter.value.toLowerCase());");
 			});
 			elms.busjoin.addEventListener("click", function () {
 				buttonsDisabled(true);
 				native.runSteamJoin();
 				buttonsDisabled(false);
+			});
+			elms.filter.addEventListener("keyup", function (e) {
+				filterTable(e.target.value.toLowerCase());
 			});
 			setTimeout(function () {
 				elms.buref.click();
@@ -137,6 +163,7 @@
 	<input type="button" id="refresh" value="refresh">
 	<input type="button" id="join" value="join">
 	<input type="button" id="steamjoin" value="steam join">
+	<input type="text" id="filter" placeholder="filter">
 	<br/> Name:
 	<b id="name"></b>
 	<div>
