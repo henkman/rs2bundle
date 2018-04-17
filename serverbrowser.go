@@ -17,9 +17,10 @@ import (
 )
 
 type Native struct {
-	w   webview.WebView
-	key string
-	dir string
+	w    webview.WebView
+	key  string
+	game string
+	dir  string
 }
 
 func jsonCleanString(raw string) string {
@@ -36,7 +37,7 @@ func jsonClean(raw []byte) []byte {
 
 func (n *Native) GetServerList(cb string, showempty bool) {
 	go func() {
-		filter := `\gamedir\RS2`
+		filter := `\gamedir\` + n.game
 		if !showempty {
 			filter += `\empty\1`
 		}
@@ -102,7 +103,8 @@ func errorPopup(msg string) {
 
 func main() {
 	var config struct {
-		Key string `json:"key"`
+		Key  string `json:"key"`
+		Game string `json:"game"`
 	}
 	{
 		fd, err := os.Open("serverbrowser.json")
@@ -134,8 +136,9 @@ func main() {
 	defer w.Exit()
 	w.Dispatch(func() {
 		w.Bind("native", &Native{w: w,
-			key: config.Key,
-			dir: dir})
+			key:  config.Key,
+			game: config.Game,
+			dir:  dir})
 	})
 	w.Run()
 }

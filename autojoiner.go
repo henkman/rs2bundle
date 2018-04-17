@@ -56,12 +56,19 @@ func TypeText(text string) {
 	}
 }
 
-func GetGameWindow() w32.HWND {
+func GetGameWindow(game string) w32.HWND {
+	window, ok := map[string]string{
+		"RS2": "Rising Storm 2: Vietnam",
+		"RO2": "UnrealEngine3",
+	}[game]
+	if !ok {
+		return w32.HWND(0)
+	}
 	return w32.FindWindowExW(
 		w32.HWND(0),
 		w32.HWND(0),
 		nil,
-		syscall.StringToUTF16Ptr("Rising Storm 2: Vietnam"),
+		syscall.StringToUTF16Ptr(window),
 	)
 }
 
@@ -73,9 +80,16 @@ func ConnectServer(server string, gamewindow w32.HWND) {
 	TypeKeycode(w32.VK_RETURN, false)
 }
 
-func RunGame(startupseconds uint) {
+func RunGame(game string, startupseconds uint) {
+	id, ok := map[string]int{
+		"RS2": 418460,
+		"RO2": 35450,
+	}[game]
+	if !ok {
+		return
+	}
 	cmd := exec.Command("cmd", "/C", "start",
-		"steam://run/418460/")
+		fmt.Sprintf("steam://run/%d/", id))
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	cmd.Start()
 	time.Sleep(time.Second * time.Duration(startupseconds))
@@ -89,7 +103,7 @@ func main() {
 		Nonsupremacy   bool
 	}
 	flag.StringVar(&opts.Server, "s", "", "server")
-	flag.UintVar(&opts.Sleepseconds, "st", 3, "sleep in seconds between tries")
+	flag.UintVar(&opts.Sleepseconds, "st", 2, "sleep in seconds between tries")
 	flag.UintVar(&opts.Startupseconds, "sg", 25, "startup time of game")
 	flag.BoolVar(&opts.Nonsupremacy, "ns", false, "no supremacy")
 	flag.Parse()
@@ -105,8 +119,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if GetGameWindow() == w32.HWND(0) {
-		RunGame(opts.Startupseconds)
+	var game string
+	{
+		r, _, err := steamquery.QueryInfo(addr)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		game = strings.ToUpper(r.Folder)
+	}
+	if GetGameWindow(game) == w32.HWND(0) {
+		RunGame(game, opts.Startupseconds)
 	}
 	for {
 		rs, _, err := steamquery.QueryRules(addr)
@@ -142,10 +165,10 @@ func main() {
 			host := fmt.Sprintf("%s:%d", addr.IP.String(), info.Port)
 			fmt.Printf("connecting to %s %s (%d players)\n",
 				info.Name, host, vals.MaxSpots-vals.OpenSpots)
-			hwnd := GetGameWindow()
+			hwnd := GetGameWindow(game)
 			if hwnd == w32.HWND(0) {
-				RunGame(opts.Startupseconds)
-				hwnd = GetGameWindow()
+				RunGame(game, opts.Startupseconds)
+				hwnd = GetGameWindow(game)
 			}
 			ConnectServer(host, hwnd)
 			break
