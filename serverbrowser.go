@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 
 	"github.com/henkman/steamwebapi"
+	"github.com/ip2location/ip2location-go"
 	"github.com/zserge/webview"
 )
 
@@ -56,9 +57,16 @@ func (n *Native) GetServerList(cb string, showempty bool) {
 			Players    int    `json:"players"`
 			MaxPlayers int    `json:"max_players"`
 			Steamid    string `json:"steamid"`
+			Country    string `json:"country"`
 		}
 		jsservers := make([]JSONServer, len(servers))
 		for i, server := range servers {
+			s := strings.Split(server.Addr, ":")
+			country := "un"
+			if len(s) > 0 {
+				location := ip2location.Get_country_short(s[0])
+				country = strings.ToLower(location.Country_short)
+			}
 			jsservers[i] = JSONServer{
 				Name:       server.Name,
 				Addr:       server.Addr,
@@ -66,6 +74,7 @@ func (n *Native) GetServerList(cb string, showempty bool) {
 				Players:    server.Players,
 				MaxPlayers: server.MaxPlayers,
 				Steamid:    server.Steamid,
+				Country:    country,
 			}
 		}
 		raw, err := json.Marshal(jsservers)
@@ -125,6 +134,7 @@ func main() {
 		return
 	}
 	dir := filepath.Dir(ex)
+	ip2location.Open(filepath.Join(dir, `IP2LOCATION-LITE-DB1.BIN`))
 	url := "file:///" + filepath.ToSlash(dir) + "/r/serverbrowser.html"
 	w := webview.New(webview.Settings{
 		Title:     "browser",

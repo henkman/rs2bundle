@@ -90,6 +90,8 @@
 				country.classList.add("flag-icon");
 				country.classList.add("flag-icon-" + servers[i].country);
 				country.title = servers[i].country;
+				country.textContent = servers[i].country;
+				country.style.color = "transparent";
 				td.appendChild(country);
 				tr.appendChild(td);
 
