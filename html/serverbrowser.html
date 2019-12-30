@@ -3,6 +3,7 @@
 
 <head>
 	<title>browser</title>
+	<link rel="stylesheet" href="flag-icon.min.css">
 	<style>
 		html,
 		body {
@@ -44,6 +45,9 @@
 	<script src="sorttable.min.js"></script>
 	<script src="juration.min.js"></script>
 	<script>
+		sorttable.sort_alpha = function(a,b) {
+			return a[0].toLowerCase().localeCompare(b[0].toLowerCase());
+		};
 		const elms = {};
 		function refreshButtonAction(servers) {
 			if (servers.error) {
@@ -79,6 +83,14 @@
 
 				td = document.createElement("td");
 				td.textContent = servers[i].addr;
+				tr.appendChild(td);
+				
+				td = document.createElement("td");
+				const country = document.createElement("span");
+				country.classList.add("flag-icon");
+				country.classList.add("flag-icon-" + servers[i].country);
+				country.title = servers[i].country;
+				td.appendChild(country);
 				tr.appendChild(td);
 
 				elms.tbody.appendChild(tr);
@@ -169,6 +181,7 @@
 				<th class="sorttable_numeric">Players</th>
 				<th class="sorttable_numeric">Steamid</th>
 				<th class="sorttable_alpha">Address</th>
+				<th class="sorttable_alpha">Country</th>
 			</tr>
 		</thead>
 		<tbody></tbody>
