@@ -1,7 +1,7 @@
 # rs2bundle
 tools for Rising Storm 2: Vietnam to show stats and browse available servers
 
-[**Download here**](https://github.com/henkman/rs2bundle/releases/download/1.0/rs2bundle.zip)
+[**Download here**](https://github.com/henkman/rs2bundle/releases/download/1.1/rs2bundle.zip)
 
 ![screenshot](https://github.com/henkman/rs2bundle/raw/master/screenshot.jpg "Screenshot")
 
