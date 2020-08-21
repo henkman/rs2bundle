@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"sort"
@@ -205,6 +206,11 @@ func main() {
 							tv.SetSelectedIndexes(model.shown)
 						}
 					}
+				},
+				OnItemActivated: func() {
+					player := model.players[model.shown[tv.CurrentIndex()]]
+					u := fmt.Sprint("https://steamcommunity.com/search/users/#text=", url.QueryEscape(player.Name))
+					exec.Command("rundll32", "url.dll,FileProtocolHandler", u).Start()
 				},
 			},
 		},
