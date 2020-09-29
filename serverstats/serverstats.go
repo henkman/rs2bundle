@@ -39,7 +39,9 @@ func main() {
 	)
 	var tv *walk.TableView
 	var mw *walk.MainWindow
+	var appIcon, _ = walk.NewIconFromResourceId(3)
 	if err := (MainWindow{
+		Icon:     appIcon,
 		AssignTo: &mw,
 		Title:    "Stats",
 		Size: Size{
