@@ -6,7 +6,9 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,7 +26,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
 	model := new(ServerModel)
 
 	go func() {
@@ -34,12 +35,12 @@ func main() {
 	}()
 
 	const (
-		TABLE_WIDTH  = 440
+		TABLE_WIDTH  = 500
 		TABLE_HEIGHT = 600
 	)
 	var tv *walk.TableView
 	var mw *walk.MainWindow
-	var appIcon, _ = walk.NewIconFromResourceId(3)
+	var appIcon, _ = walk.NewIconFromResourceId(2)
 	if err := (MainWindow{
 		Icon:     appIcon,
 		AssignTo: &mw,
@@ -189,6 +190,7 @@ func main() {
 					{Title: "Name", Width: 160},
 					{Title: "Score", Width: 50},
 					{Title: "Online", Width: 120},
+					{Title: "Platform", Width: 60},
 					{Title: "Score/Second", Width: 90},
 				},
 				Model: model,
@@ -238,12 +240,21 @@ const (
 	ColumnName Column = iota
 	ColumnScore
 	ColumnOnline
+	ColumnPlatform
 	ColumnScorePerSecond
+)
+
+type Platform = string
+
+const (
+	Platform_Steam     Platform = "STEAM"
+	Platform_EpicStore Platform = "EOS"
 )
 
 type Player struct {
 	Name           string
 	Score          int32
+	Platform       Platform
 	Online         time.Duration
 	ScorePerSecond float64
 }
@@ -272,10 +283,20 @@ func (m *ServerModel) Value(row, col int) interface{} {
 		return player.Name
 	case ColumnScore:
 		return player.Score
+	case ColumnPlatform:
+		return player.Platform
 	case ColumnOnline:
-		return player.Online
+		if player.Platform == Platform_Steam {
+			return player.Online
+		} else {
+			return ""
+		}
 	case ColumnScorePerSecond:
-		return fmt.Sprintf("%.6f", player.ScorePerSecond)
+		if player.Platform == Platform_Steam {
+			return fmt.Sprintf("%.6f", player.ScorePerSecond)
+		} else {
+			return ""
+		}
 	}
 	panic("unexpected col")
 }
@@ -294,6 +315,11 @@ func (m *ServerModel) Sort(col int, order walk.SortOrder) error {
 				return a.Score < b.Score
 			}
 			return a.Score > b.Score
+		case ColumnPlatform:
+			if order == walk.SortAscending {
+				return a.Platform < b.Platform
+			}
+			return a.Online > b.Online
 		case ColumnOnline:
 			if order == walk.SortAscending {
 				return a.Online < b.Online
@@ -310,37 +336,111 @@ func (m *ServerModel) Sort(col int, order walk.SortOrder) error {
 	return m.SorterBase.Sort(col, order)
 }
 
+var rePlayer = regexp.MustCompile(`^PI_([NPS])_(\d+)$`)
+
 func (m *ServerModel) Refresh(addr *net.UDPAddr) {
-	players, _, err := steamquery.QueryPlayers(addr)
-	if err != nil {
-		return
-	}
-	m.shown = m.shown[:0]
-	m.players = m.players[:0]
-	filter := strings.ToLower(m.filterTextEdit.Text())
-	for i, player := range players {
-		pls := Player{
-			Name:           strings.TrimSpace(player.Name),
-			Score:          player.Score,
-			Online:         player.Duration,
-			ScorePerSecond: float64(player.Score) / float64(player.Duration/time.Second),
-		}
-		m.players = append(m.players, pls)
-		if filter == "" ||
-			strings.Contains(strings.ToLower(pls.Name), filter) {
-			m.shown = append(m.shown, i)
-		}
-	}
 	info, ping, err := steamquery.QueryInfo(addr)
 	if err != nil {
 		return
+	}
+
+	m.shown = m.shown[:0]
+	m.players = m.players[:0]
+	filter := strings.ToLower(m.filterTextEdit.Text())
+
+	if info.Game == "Rising Storm 2" {
+		rules, _, err := steamquery.QueryRules(addr)
+		if err != nil {
+			return
+		}
+		playersMap := map[int]Player{}
+		count := 64
+		for _, rule := range rules {
+			if rule.Name == `PI_COUNT` {
+				v, err := strconv.Atoi(rule.Value)
+				if err != nil {
+					return
+				}
+				count = v
+				continue
+			}
+			m := rePlayer.FindStringSubmatch(rule.Name)
+			if m == nil {
+				continue
+			}
+			o, err := strconv.Atoi(m[2])
+			if err != nil {
+				return
+			}
+			if o >= count {
+				continue
+			}
+			var player Player
+			if p, ok := playersMap[o]; ok {
+				player = p
+			}
+			switch m[1][0] {
+			case 'N':
+				player.Name = rule.Value
+			case 'P':
+				player.Platform = Platform(rule.Value)
+			case 'S':
+				{
+					score, err := strconv.ParseInt(rule.Value, 10, 32)
+					if err != nil {
+						return
+					}
+					player.Score = int32(score)
+				}
+			}
+			playersMap[o] = player
+		}
+		steamPlayers, _, err := steamquery.QueryPlayers(addr)
+		if err != nil {
+			return
+		}
+		for i, player := range playersMap {
+			if player.Platform == Platform_Steam {
+				for _, p := range steamPlayers {
+					if p.Name == player.Name {
+						player.Online = p.Duration
+						player.ScorePerSecond = float64(player.Score) / float64(player.Online/time.Second)
+						break
+					}
+				}
+			}
+			m.players = append(m.players, player)
+			if filter == "" ||
+				strings.Contains(strings.ToLower(player.Name), filter) {
+				m.shown = append(m.shown, i)
+			}
+		}
+	} else {
+		steamPlayers, _, err := steamquery.QueryPlayers(addr)
+		if err != nil {
+			return
+		}
+		for i, player := range steamPlayers {
+			pls := Player{
+				Name:           strings.TrimSpace(player.Name),
+				Score:          player.Score,
+				Platform:       Platform_Steam,
+				Online:         player.Duration,
+				ScorePerSecond: float64(player.Score) / float64(player.Duration/time.Second),
+			}
+			m.players = append(m.players, pls)
+			if filter == "" ||
+				strings.Contains(strings.ToLower(pls.Name), filter) {
+				m.shown = append(m.shown, i)
+			}
+		}
 	}
 	name := strings.TrimSpace(info.Name)
 	m.nameLabel.SetText(name)
 	m.nameLabel.SetToolTipText(name)
 	m.mapLabel.SetText(info.Map)
 	m.mapLabel.SetToolTipText(info.Map)
-	m.playersLabel.SetText(fmt.Sprintf("%d/%d", len(players), info.MaxPlayers))
+	m.playersLabel.SetText(fmt.Sprintf("%d/%d", len(m.players), info.MaxPlayers))
 	m.pingLabel.SetText(ping.Truncate(time.Millisecond).String())
 	m.gameID = info.GameID
 }

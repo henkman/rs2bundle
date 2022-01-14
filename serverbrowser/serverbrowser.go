@@ -59,8 +59,7 @@ func main() {
 	)
 	var mw *walk.MainWindow
 
-	var appIcon, _ = walk.NewIconFromResourceId(3)
-
+	var appIcon, _ = walk.NewIconFromResourceId(2)
 	if err := (MainWindow{
 		Icon:     appIcon,
 		AssignTo: &mw,
