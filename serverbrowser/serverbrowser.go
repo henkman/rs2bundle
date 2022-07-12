@@ -109,10 +109,9 @@ func main() {
 						},
 					},
 					ComboBox{
-						AssignTo:     &model.gameComboBox,
-						Model:        games,
-						MaxSize:      Size{50, 30},
-						CurrentIndex: 0,
+						AssignTo: &model.gameComboBox,
+						Model:    games,
+						MaxSize:  Size{50, 30},
 						OnCurrentIndexChanged: func() {
 							game := games[model.gameComboBox.CurrentIndex()]
 							model.Refresh(game, model.showEmptyCheckbox.Checked())
@@ -184,6 +183,11 @@ func main() {
 	}.Create()); err != nil {
 		panic(err)
 	}
+
+	go func() {
+		model.Sort(ColumnPlayers, walk.SortDescending)
+		model.gameComboBox.SetCurrentIndex(0) // RS2
+	}()
 
 	scrWidth := win.GetSystemMetrics(win.SM_CXSCREEN)
 	scrHeight := win.GetSystemMetrics(win.SM_CYSCREEN)
