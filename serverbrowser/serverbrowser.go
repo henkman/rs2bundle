@@ -78,6 +78,7 @@ func main() {
 						OnClicked: func() {
 							game := games[model.gameComboBox.CurrentIndex()]
 							model.Refresh(game, model.showEmptyCheckbox.Checked())
+							model.Filter()
 							model.Sort(model.SortedColumn(), model.SortOrder())
 							model.PublishRowsReset()
 						},

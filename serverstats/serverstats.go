@@ -68,6 +68,7 @@ func main() {
 						Text: "Refresh",
 						OnClicked: func() {
 							model.Refresh(addr)
+							model.Filter()
 							model.Sort(model.SortedColumn(), model.SortOrder())
 							model.PublishRowsReset()
 						},
