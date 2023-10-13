@@ -1,0 +1,26 @@
+name: Go
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '^1.20'
+    - name: Build RSRC
+      run: go get github.com/akavel/rsrc
+    - name: Serverbrowser - Generate rsrc
+      working-directory: ./serverbrowser
+      run: rsrc -ico app.ico -manifest app.manifest -o rsrc.syso
+    - name: Serverbrowser - Get dependencies
+      working-directory: ./serverbrowser
+      run: go get -v -d
+    - name: Serverbrowser - Build Exe
+      working-directory: ./serverbrowser
+      run: go build -trimpath -tags walk_use_cgo -ldflags="-H windowsgui -s -w"
