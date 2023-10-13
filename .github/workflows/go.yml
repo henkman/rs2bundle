@@ -15,6 +15,7 @@ jobs:
         go-version: '^1.20'
     - name: Build RSRC
       run: go install github.com/akavel/rsrc@latest
+
     - name: Serverbrowser - Generate rsrc
       working-directory: ./serverbrowser
       run: rsrc -ico app.ico -manifest app.manifest -o rsrc.syso
@@ -24,3 +25,26 @@ jobs:
     - name: Serverbrowser - Build Exe
       working-directory: ./serverbrowser
       run: go build -trimpath -tags walk_use_cgo -ldflags="-H windowsgui -s -w"
+
+    - name: Serverstats - Generate rsrc
+      working-directory: ./serverstats
+      run: rsrc -ico app.ico -manifest app.manifest -o rsrc.syso
+    - name: Serverstats - Get dependencies
+      working-directory: ./serverstats
+      run: go get -v -d
+    - name: Serverstats - Build Exe
+      working-directory: ./serverstats
+      run: go build -trimpath -tags walk_use_cgo -ldflags="-H windowsgui -s -w"
+
+    - name: Serverbrowser - Add to rs2bundle.zip
+      working-directory: ./serverbrowser
+      run: 7z a -mx9 ../rs2bundle.zip serverbrowser.exe flags.csv flags.png IP2LOCATION-LITE-DB1.BIN serverbrowser.json
+    - name: Serverstats - Add to rs2bundle.zip
+      working-directory: ./serverstats
+      run: 7z a -mx9 ../rs2bundle.zip serverstats.exe
+
+    - name: Upload rs2bundle.zip
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: rs2bundle.zip
+        path: ./rs2bundle.zip
