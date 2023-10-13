@@ -112,7 +112,7 @@ func main() {
 					ComboBox{
 						AssignTo: &model.gameComboBox,
 						Model:    games,
-						MaxSize:  Size{50, 30},
+						MaxSize:  Size{80, 30},
 						OnCurrentIndexChanged: func() {
 							game := games[model.gameComboBox.CurrentIndex()]
 							model.Refresh(game, model.showEmptyCheckbox.Checked())
@@ -205,6 +205,8 @@ var (
 	games = []string{
 		"RS2",
 		"RO2",
+		"Insurgency",
+		"Squad",
 	}
 )
 

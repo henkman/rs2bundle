@@ -75,17 +75,7 @@ func main() {
 						MaxSize: Size{80, 30},
 					},
 					PushButton{
-						Text: "Start",
-						OnClicked: func() {
-							url := fmt.Sprintf("steam://rungameid/%d/",
-								model.gameID)
-							cmd := exec.Command("cmd", "/C", "start", url)
-							cmd.Run()
-						},
-						MaxSize: Size{80, 30},
-					},
-					PushButton{
-						Text: "Steam",
+						Text: "Connect",
 						OnClicked: func() {
 							cmd := exec.Command("cmd", "/C", "start",
 								"steam://connect/"+addr.String())
@@ -96,7 +86,7 @@ func main() {
 					TextEdit{
 						AssignTo:    &model.filterTextEdit,
 						ToolTipText: "Filter",
-						MaxSize:     Size{120, 30},
+						MaxSize:     Size{160, 30},
 						OnTextChanged: func() {
 							model.Filter()
 							model.Sort(model.SortedColumn(), model.SortOrder())
