@@ -30,7 +30,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		err = json.NewDecoder(fd).Decode(&model.key)
+		err = json.NewDecoder(fd).Decode(&model.config)
 		fd.Close()
 		if err != nil {
 			panic(err)
@@ -188,6 +188,14 @@ func main() {
 	go func() {
 		model.Sort(ColumnPlayers, walk.SortDescending)
 		model.gameComboBox.SetCurrentIndex(0) // RS2
+		if model.config.DefaultGame != "" {
+			for i, game := range games {
+				if model.config.DefaultGame == game {
+					model.gameComboBox.SetCurrentIndex(i)
+					break
+				}
+			}
+		}
 	}()
 
 	scrWidth := win.GetSystemMetrics(win.SM_CXSCREEN)
@@ -241,7 +249,10 @@ type ServerModel struct {
 	servers           []Server
 	shown             []int
 	ip2location       *ip2location.DB
-	key               string
+	config            struct {
+		DefaultGame string `json:"defaultGame"`
+		Key         string `json:"key"`
+	}
 }
 
 func (m *ServerModel) RowCount() int {
@@ -312,7 +323,7 @@ func (m *ServerModel) Refresh(game string, showEmpty bool) {
 	if !showEmpty {
 		f += `\empty\1`
 	}
-	servers, err := steamwebapi.GetServerList(m.key, 5000, f)
+	servers, err := steamwebapi.GetServerList(m.config.Key, 5000, f)
 	if err != nil {
 		panic(err)
 	}

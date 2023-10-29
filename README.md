@@ -19,5 +19,5 @@ set launch options in steam to `-nostartupmovies`
 
 # server browser configuration
 - create file serverbrowser.json
-- put "$yourkey" into it
+- put {key:"$yourkey"} into it
 - $yourkey is [the key from steam](https://steamcommunity.com/dev/apikey)
