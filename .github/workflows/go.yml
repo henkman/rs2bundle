@@ -38,7 +38,7 @@ jobs:
 
     - name: Serverbrowser - Create sample serverbrowser.json
       working-directory: ./serverbrowser
-      run: '{key:"STEAMKEYHERE", defaultGame:"RS2"} > serverbrowser.json'
+      run: '"{key:""STEAMKEYHERE"", defaultGame:""RS2""}" > serverbrowser.json'
     - name: Serverbrowser - Add to rs2bundle.zip
       working-directory: ./serverbrowser
       run: 7z a -mx9 ../rs2bundle.zip serverbrowser.exe flags.csv flags.png IP2LOCATION-LITE-DB1.BIN serverbrowser.json
